@@ -1,0 +1,24 @@
+Usage:
+        measure-mobile-net.sh [-p provider -e environment]
+
+Description:
+        Measure the performance of your mobile network connection and log it.
+        Test doesn't have mandatory arguments but you can skip some wizard-like questions with arguments
+
+Options:
+        Optional stuff:
+        ****
+        -p/--provider Provider          Define the provider you use (i.e. Salt, Swisscom, Sunrise)
+        -e/--environment Environment    Define the environment the test will be taken in (i.e Train/Car, Outdoor, Indoor)
+
+        I need help:
+        ****
+        -h/--help               this help
+
+Example:
+        measure-mobile-net.sh -p "Salt" -e "Train/Car"
+            Test will be taken with Salt in a train or a car (or something which moves)
+
+        measure-mobile-net.sh -p "Swisscom"
+            Test will be taken with Swisscom
+
