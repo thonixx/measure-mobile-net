@@ -2,6 +2,18 @@
 # measure mobile network performance
 # by thonixx
 
+# config parameters
+providers=("Salt" "Swisscom" "Sunrise")
+networks=("GPRS" "2G" "3G" "4G")
+environments=("train/car" "outdoor" "indoor")
+pingcount=10
+speedtmout=25
+speed_host="speedtest.init7.net"
+speed_host_uri="/1GB.dat"
+resultfile="./measure-mobile-net.log"
+table_header="| Provider | Date | Location | Environment | Tech | Signal | Average ping | Average speed |"
+date="$(export LC_ALL=C; date)"
+
 # trap for removing temp file
 tmpfile="$(mktemp)"
 trap 'rm -f "$tmpfile"; exit 1' EXIT INT HUP SIGHUP SIGINT SIGTERM
@@ -17,7 +29,13 @@ then
     TIMEOUT="gtimeout"
 fi
 
-# OK, now we use getopt from util-linux
+# following function borrowed from stackexchange
+# thanks to http://stackoverflow.com/a/24289918
+toBytes() {
+ echo $1 | echo $((`gsed 's/.*/\L\0/;s/t/Xg/;s/g/Xm/;s/m/Xk/;s/k/X/;s/b//;s/X/ *1024/g'`))
+}
+
+# function for printing the usage/help
 usage ()
 {
 echo "Usage:
@@ -65,24 +83,51 @@ while true ; do
         esac
 done
 
-# config parameters
-providers=("Salt" "Swisscom" "Sunrise")
-networks=("GPRS" "2G" "3G" "4G")
-environments=("Train/Car" "Outdoor" "Indoor")
-pingcount=10
-speedtmout=25
-resultfile="./measure-mobile-net.log"
-date="$(export LC_ALL=C; date)"
-
-# function borrowed from stackexchange
-# thanks to http://stackoverflow.com/a/24289918
-toBytes() {
- echo $1 | echo $((`gsed 's/.*/\L\0/;s/t/Xg/;s/g/Xm/;s/m/Xk/;s/k/X/;s/b//;s/X/ *1024/g'`))
-}
-
 # fill in log file if it doesn't exist and prompt the usage
 # we assume that a user is new if there is no log file
-test ! -f "$resultfile" && echo "| Provider | Date | Location | Environment | Tech | Signal | Average ping | Average speed |" > $resultfile && echo && echo "++++" && echo "It seems that this is your first time (or you removed the log file). See what's possible:" && echo "++++" && echo && usage && exit 0
+if [ ! -f "$resultfile" ]
+then
+    # file doesn't exist, so fill it with the header
+    echo "$table_header" > $resultfile
+
+    # print usage
+    usage
+    echo
+
+    # print out a message and assume the test is being run the first time
+    echo
+    echo "++++"
+    echo "It seems that this is your first time (or you removed the log file)."
+    echo "See above the help output (can also be printed with '--help')."
+    echo "++++"
+    echo
+
+    read -sp "Press enter to start the first test..." blah
+    echo
+fi
+
+# prepare speed test host IP
+# this is because DNS resolving sometimes can take a long time and counts to the download time
+# so the result wouldn't be that accurate and therefore I kinda like "cache" the IP before doing the tests
+echo -n "Prepare DNS for Speed test host... "
+speed_host_ip=""
+iteration="1"
+while test -z $speed_host_ip && test "$iteration" -lt 5
+do
+    speed_host_ip="$($TIMEOUT 10 host -t A $speed_host | grep -o "has address.*" | head -n1 | awk '{print $3}')"
+    iteration=$((iteration+1))
+done
+if [ -z "$speed_host_ip" ]
+then
+    # we assume that dns did not resolve
+    echo -e "DNS timeout.\nWill be resolved at the speed test but could falsify the result."
+    read -sp "Press enter to continue..." blah
+    speed_host_ip="$speed_host"
+else
+    # dns did resolve, print success
+    echo "OK"
+fi
+echo
 
 # announce starting
 echo "Start measuring on $date..."
@@ -107,7 +152,7 @@ echo
 # do the download test
 echo "Downloading file for $speedtmout sec..."
 # call with timeout command and fill progress to temporary file to calculate the results
-$TIMEOUT --foreground $speedtmout wget -q --show-progress -O /dev/null http://213.144.138.186/1GB.dat -H Host:speedtest.init7.net 2>&1 | tee $tmpfile > /dev/null
+$TIMEOUT --foreground $speedtmout wget -q --show-progress -O /dev/null http://$speed_host_ip/$speed_host_uri -H Host:$speed_host 2>&1 | tee $tmpfile > /dev/null
 # if file is empty we assume the speed test went into a timeout
 # otherwise calculate results
 test -s $tmpfile && {
@@ -204,15 +249,16 @@ done
 echo
 
 # result overview
+result="| $prov_chosen | $date | $location | $env_chosen | $tech_chosen | $sig_chosen | $pingavg ms | $speed KB/s |"
 echo "++++++++++++++++++++++++"
 echo "Overview of the results:"
 echo "++++++++++++++++++++++++"
-echo "| Provider | Date | Location | Environment | Tech | Signal | Average ping | Average speed |"
-echo "| $prov_chosen | $date | $location | $env_chosen | $tech_chosen | $sig_chosen | $pingavg ms | $speed KB/s |"
+echo "$table_header"
+echo "$result"
 echo
 
 # ask for confirmation
-read -p "Correct? If so, press Enter, otherwise Ctrl-C. " blah
+read -sp "Correct? If so, press Enter, otherwise Ctrl-C. " blah
 
 # write result to the file
-echo "| $prov_chosen | $date | $location | $env_chosen | $tech_chosen | $sig_chosen | $pingavg ms | $speed KB/s |" >> $resultfile
+echo "$result" >> $resultfile
