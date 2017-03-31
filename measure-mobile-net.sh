@@ -120,9 +120,11 @@ done
 if [ -z "$speed_host_ip" ]
 then
     # we assume that dns did not resolve
-    echo -e "DNS timeout.\nWill be resolved at the speed test but could falsify the result."
-    read -sp "Press enter to continue..." blah
+    echo -e "DNS failed or timed out.\nWill be resolved at the speed test but could falsify the result."
+    # save the host name to the variable so wget resolves it later
     speed_host_ip="$speed_host"
+    read -sp "Press enter to continue..." blah
+    echo
 else
     # dns did resolve, print success
     echo "OK"
@@ -146,13 +148,15 @@ echo
 echo "Pinging $pingcount time$(test $pingcount -gt 0 && echo -n s)..."
 # parse out average ping time
 pingavg="$(ping -q -c$pingcount 8.8.8.8 | grep avg | awk -F/ '{print $5}' | awk -F\. '{print $1}')"
+# if empty we assume a timeout or no connection (anymore)
+test -z "$pingavg" && pingavg="(timeout)"
 echo "Average ping time: $pingavg ms"
 echo
 
 # do the download test
 echo "Downloading file for $speedtmout sec..."
 # call with timeout command and fill progress to temporary file to calculate the results
-$TIMEOUT --foreground $speedtmout wget -q --show-progress -O /dev/null http://$speed_host_ip/$speed_host_uri -H Host:$speed_host 2>&1 | tee $tmpfile > /dev/null
+$TIMEOUT --foreground $speedtmout wget -q --show-progress -O /dev/null http://$speed_host_ip/$speed_host_uri --header="Host: $speed_host" 2>&1 | tee $tmpfile > /dev/null
 # if file is empty we assume the speed test went into a timeout
 # otherwise calculate results
 test -s $tmpfile && {
