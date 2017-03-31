@@ -18,12 +18,14 @@ date="$(export LC_ALL=C; date)"
 
 # trap for removing temp file
 tmpfile="$(mktemp)"
-trap 'rm -f "$tmpfile"; exit 1' EXIT INT HUP SIGHUP SIGINT SIGTERM
+tmpDLfile="$(mktemp)"
+trap 'rm -f "$tmpfile" "$tmpDLfile"; exit 1' EXIT INT HUP SIGHUP SIGINT SIGTERM
 
 # linux compatibilty
 GETOPT="getopt"
 TIMEOUT="timeout"
 SED="sed"
+STAT="stat"
 
 # mac compatibilty
 if [ "$(uname)" == "Darwin" ]
@@ -31,6 +33,7 @@ then
     GETOPT="/usr/local/opt/gnu-getopt/bin/getopt"
     TIMEOUT="gtimeout"
     SED="gsed"
+    STAT="gstat"
 fi
 
 # following function borrowed from stackexchange
@@ -154,24 +157,23 @@ echo "Pinging $pingcount time$(test $pingcount -gt 0 && echo -n s)..."
 # parse out average ping time
 pingavg="$(ping -q -c$pingcount 8.8.8.8 | grep avg | awk -F/ '{print $5}' | awk -F\. '{print $1}')"
 # if empty we assume a timeout or no connection (anymore)
-test -z "$pingavg" && pingavg="(timeout)"
+test -z "$pingavg" && pingavg="(failed)"
 echo "Average ping time: $pingavg ms"
 echo
 
 # do the download test
 echo "Downloading file for $speedtmout sec..."
 # call with timeout command and fill progress to temporary file to calculate the results
-$TIMEOUT --foreground $speedtmout wget -q --show-progress -O /dev/null http://$speed_host_ip/$speed_host_uri --header="Host: $speed_host" 2>&1 | tee $tmpfile > /dev/null
+$TIMEOUT --foreground $speedtmout wget -q -O $tmpDLfile http://$speed_host_ip/$speed_host_uri --header="Host: $speed_host" 2> /dev/null > /dev/null
 # if file is empty we assume the speed test went into a timeout
 # otherwise calculate results
-test -s $tmpfile && {
-        speed_human="$(tail -n1 $tmpfile | awk '{print $1}')"
-        speed_robot="$(toBytes $speed_human)"
-        speed="$(echo "scale=2; $speed_robot / $speedtmout / 1000" | bc | awk -F\. '{print $1}')"
+test -s $tmpDLfile && {
+        file_size="$($STAT --printf="%s" $tmpDLfile)"
+        speed="$(echo "scale=2; $file_size / 1024 / $speedtmout" | bc | awk -F\. '{print $1}')"
         echo "Speed is: $speed KB per second"
     } || {
-        speed="(timeout)"
-        echo "Speed test timeout reached. Skipping."
+        speed="(failed)"
+        echo "Speed test failed or timeout reached. Skipping."
     }
 echo
 
