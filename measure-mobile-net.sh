@@ -22,18 +22,20 @@ trap 'rm -f "$tmpfile"; exit 1' EXIT INT HUP SIGHUP SIGINT SIGTERM
 # linux compatibilty
 GETOPT="getopt"
 TIMEOUT="timeout"
+SED="sed"
 
 # mac compatibilty
 if [ "$(uname)" == "Darwin" ]
 then
     GETOPT="/usr/local/opt/gnu-getopt/bin/getopt"
     TIMEOUT="gtimeout"
+    SED="gsed"
 fi
 
 # following function borrowed from stackexchange
 # thanks to http://stackoverflow.com/a/24289918
 toBytes() {
- echo $1 | echo $((`gsed 's/.*/\L\0/;s/t/Xg/;s/g/Xm/;s/m/Xk/;s/k/X/;s/b//;s/X/ *1024/g'`))
+ echo $1 | echo $((`$SED 's/.*/\L\0/;s/t/Xg/;s/g/Xm/;s/m/Xk/;s/k/X/;s/b//;s/X/ *1024/g'`))
 }
 
 # function for printing the usage/help
