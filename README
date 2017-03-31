@@ -8,8 +8,8 @@ Description:
 Options:
         Optional stuff:
         ****
-        -p/--provider Provider          Define the provider you use (i.e. Salt, Swisscom, Sunrise)
-        -e/--environment Environment    Define the environment the test will be taken in (i.e Train/Car, Outdoor, Indoor)
+        -p/--provider Provider          Define the provider you use (i.e. Salt Swisscom Sunrise)
+        -e/--environment Environment    Define the environment the test will be taken in (i.e train/car outdoor indoor)
 
         I need help:
         ****
