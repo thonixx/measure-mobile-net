@@ -8,7 +8,8 @@ networks=("GPRS" "2G" "3G" "4G")
 environments=("train/car" "outdoor" "indoor")
 pingcount=10
 speedtmout=25
-resolvetmout=7
+resolvetmout=5
+resolvetries=3
 speed_host="speedtest.init7.net"
 speed_host_uri="/1GB.dat"
 resultfile="./measure-mobile-net.log"
@@ -112,11 +113,11 @@ fi
 # prepare speed test host IP
 # this is because DNS resolving sometimes can take a long time and counts to the download time
 # so the result wouldn't be that accurate and therefore I kinda like "cache" the IP before doing the tests
-echo -n "Prepare DNS for speed test host... "
+echo -n "Prepare DNS for speed test host (for max $((resolvetmout * resolvetries)) secs)... "
 
 speed_host_ip=""
 iteration="1"
-while test -z $speed_host_ip && test "$iteration" -lt 5
+while test -z $speed_host_ip && test "$iteration" -lt $resolvetries
 do
     speed_host_ip="$(host -W $resolvetmout -t A $speed_host | grep -o "has address.*" | head -n1 | awk '{print $3}')"
     iteration=$((iteration+1))
