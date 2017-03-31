@@ -179,7 +179,7 @@ select opt in "${networks[@]}" "something else"; do
 
     case "$REPLY" in
 
-    * ) test ! -z $opt && echo "Network technology was: $opt" && tech_chosen="$opt" && break || echo "No valid option. Try again.";;
+    * ) test ! -z "$opt" && echo "Network technology was: $opt" && tech_chosen="$opt" && break || echo "No valid option. Try again.";;
 
     esac
 
