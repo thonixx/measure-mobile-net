@@ -157,7 +157,7 @@ echo "Pinging $pingcount time$(test $pingcount -gt 0 && echo -n s)..."
 # parse out average ping time
 pingavg="$(ping -q -c$pingcount 8.8.8.8 | grep avg | awk -F/ '{print $5}' | awk -F\. '{print $1}')"
 # if empty we assume a timeout or no connection (anymore)
-test -z "$pingavg" && pingavg="(failed)"
+test -z "$pingavg" && pingavg="(timed out)"
 echo "Average ping time: $pingavg ms"
 echo
 
@@ -172,7 +172,7 @@ test -s $tmpDLfile && {
         speed="$(echo "scale=2; $file_size / 1024 / $speedtmout" | bc | awk -F\. '{print $1}')"
         echo "Speed is: $speed KB per second"
     } || {
-        speed="(failed)"
+        speed="(timed out)"
         echo "Speed test failed or timeout reached. Skipping."
     }
 echo
