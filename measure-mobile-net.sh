@@ -152,6 +152,35 @@ echo " - Location"
 echo "+++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
+# ask for technology (3G or whatever)
+echo "Which network technology is being used for the test (Edge/E = 2G, H+ = 3G, LTE = 4G)?"
+PS3="Choose wisely: "
+select opt in "${networks[@]}" "something else"; do
+
+    case "$REPLY" in
+
+    * ) test ! -z "$opt" && echo "Network technology was: $opt" && tech_chosen="$opt" && break || echo "No valid option. Try again.";;
+
+    esac
+
+done
+echo
+
+# ask for signal strength
+echo "How much is the signal strength at the moment? (out of 5)"
+PS3="Choose wisely: "
+select opt in "●○○○○" "●●○○○" "●●●○○" "●●●●○" "●●●●●" "○○○○○"; do
+
+    case "$REPLY" in
+
+    * ) test ! -z $opt && echo "Signal was: $opt" && sig_chosen="$opt" && break || echo "No valid option. Try again.";;
+
+    esac
+
+done
+echo
+
+
 # do the ping test
 echo "Pinging $pingcount time$(test $pingcount -gt 0 && echo -n s)..."
 # parse out average ping time
@@ -175,34 +204,6 @@ test -s $tmpDLfile && {
         speed="(timed out)"
         echo "Speed test failed or timeout reached. Skipping."
     }
-echo
-
-# ask for technology (3G or whatever)
-echo "Which network technology was used for the test (Edge/E = 2G, H+ = 3G, LTE = 4G)?"
-PS3="Choose wisely: "
-select opt in "${networks[@]}" "something else"; do
-
-    case "$REPLY" in
-
-    * ) test ! -z "$opt" && echo "Network technology was: $opt" && tech_chosen="$opt" && break || echo "No valid option. Try again.";;
-
-    esac
-
-done
-echo
-
-# ask for signal strength
-echo "How much was the signal strength? (out of 5)"
-PS3="Choose wisely: "
-select opt in "●○○○○" "●●○○○" "●●●○○" "●●●●○" "●●●●●" "○○○○○"; do
-
-    case "$REPLY" in
-
-    * ) test ! -z $opt && echo "Signal was: $opt" && sig_chosen="$opt" && break || echo "No valid option. Try again.";;
-
-    esac
-
-done
 echo
 
 # ask for provider
