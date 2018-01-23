@@ -211,7 +211,7 @@ if [ -z "$prov_override" ]
 then
     # the provider was not given as an argument so ask for it
     echo "Which provider was used for the test?"
-    PS3="Choose whoever you want to blame for: "
+    PS3='Choose whoever you want to "blame" for ;): '
     select opt in "${providers[@]}" "Else (type the name)"; do
 
         case "$REPLY" in
