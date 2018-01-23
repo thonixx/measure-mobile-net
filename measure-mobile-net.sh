@@ -198,8 +198,8 @@ $TIMEOUT --foreground $speedtmout wget -q -O $tmpDLfile http://$speed_host_ip/$s
 # otherwise calculate results
 test -s $tmpDLfile && {
         file_size="$($STAT --printf="%s" $tmpDLfile)"
-        speed="$(echo "scale=2; $file_size / 1024 / $speedtmout" | bc | awk -F\. '{print $1}')"
-        echo "Speed is: $speed KB per second"
+        speed="$(echo "scale=2; $file_size / 1024 / $speedtmout * 8" | bc | awk -F\. '{print $1}')"
+        echo "Speed is: $speed Kbps"
     } || {
         speed="(timed out)"
         echo "Speed test failed or timeout reached. Skipping."
@@ -261,7 +261,7 @@ done
 echo
 
 # result overview
-result="| $prov_chosen | $date | $location | $env_chosen | $tech_chosen | $sig_chosen | $pingavg ms | $speed KB/s |"
+result="| $prov_chosen | $date | $location | $env_chosen | $tech_chosen | $sig_chosen | $pingavg ms | $speed Kb/s |"
 echo "++++++++++++++++++++++++"
 echo "Overview of the results:"
 echo "++++++++++++++++++++++++"
