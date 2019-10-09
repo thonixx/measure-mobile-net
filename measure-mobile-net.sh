@@ -11,7 +11,7 @@ speedtmout=25
 resolvetmout=5
 resolvetries=3
 speed_host="speedtest.init7.net"
-speed_host_uri="/1GB.dat"
+speed_host_uri="/1GB.dd"
 resultfile="./measure-mobile-net.log"
 table_header="| Provider | Date | Location | Environment | Tech | Signal | Average ping | Average speed |"
 date="$(export LC_ALL=C; date)"
