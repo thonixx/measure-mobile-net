@@ -2,18 +2,35 @@
 # measure mobile network performance
 # by thonixx
 
+# basics
+SCRIPT_NAME="${0##*/}"
+SCRIPT_PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # config parameters
+
+# put all providers here
 providers=("Salt" "Swisscom" "Sunrise")
+# available networks
 networks=("GPRS" "2G" "3G" "4G")
+# environments where the test could be taken in
 environments=("train/car" "outdoor" "indoor")
+# how many pings?
 pingcount=10
+# timeout for speedtest
 speedtmout=25
+# timeout for DNS resolving
 resolvetmout=5
+# how many tries for DNS resolving
 resolvetries=3
+# host for speed test
 speed_host="speedtest.init7.net"
+# file for speed test
 speed_host_uri="/1GB.dd"
-resultfile="./measure-mobile-net.log"
+# where to save results
+resultfile="${SCRIPT_PWD}/measure-mobile-net.log"
+# table header for empty log file
 table_header="| Provider | Date | Location | Environment | Tech | Signal | Average ping | Average speed |"
+# current date
 date="$(export LC_ALL=C; date)"
 
 # trap for removing temp file
@@ -46,7 +63,7 @@ toBytes() {
 usage ()
 {
 echo "Usage:
-        ${0##*/} [-p provider -e environment]
+        ${SCRIPT_NAME} [-p provider -e environment]
 
 Description:
         Measure the performance of your mobile network connection and log it.
